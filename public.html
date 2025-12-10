@@ -2,107 +2,128 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Painel do Bot Whatsapp</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            padding: 20px;
-            }
+    <title>Painel do Bot WhatsApp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-            h1 {
-                color: #333;
-            }
+<header>
+    Painel do Bot WhatsApp
+</header>
 
-            .card {
-                background: #fff;
-                padding: 20px;
-                margin-bottom: 20px;
-                border-radius: 12px;
-                box-shadow: 0 0 10px #0001;
-            }
-            table {
-                width: 100%;
-                border-collapse: collapse;
-                margin-top: 15px;
-                }
-                th, td{
-                    padding: 8px;
-                    border-bottom: 1px solid #ddd;
-                }
-                th {
-                    background: #eee;
-                }
-                .status-online{
-                    color:green;
-                    font-weight: bold;
-                }
-                .status-offline{
-                    color:red;
-                    font-weight: bold;
-                }
-            </style>
-        </head>
-        <body>
-            <h1>Painel de Monitoramento do Bot</h1>
-            <div class="card">
-                <h2>Status do Bot</h2>
-                <p><b>Situação:</b> <span id="status">Carregando...</span></p>
-                <p><b>Última mensagem:</b> <span id="ultimaMsg">–</span></p>
-                <p><b>Atualizado em:</b> <span id="atualizado">–</span></p>
-                <p><a href="/qr" target="_blank">Abrir QR em imagem</a></p>
-            </div>
-            <!-- PERGUNTAS MAIS FREQUENTES -->
-            <div class="card">
-                <h2>Perguntas Mais Comuns</h2>
-                <table>
-                    <thead>
+<div class="container">
+
+    <div class="cards">
+        <div class="card">
+            <h3>Status do Bot</h3>
+            <p id="status">Carregando...</p>
+            <a class="qr-btn" href="/qr" target="_blank">📱 Abrir QR Code</a>
+        </div>
+
+        <div class="card">
+            <h3>Última Mensagem</h3>
+            <p id="ultimaMsg">Carregando...</p>
+        </div>
+
+        <div class="card">
+            <h3>Total de Usuários</h3>
+            <p id="usuarios">Carregando...</p>
+        </div>
+
+        <div class="card">
+            <h3>Total de Atendimentos</h3>
+            <p id="atendimentos">Carregando...</p>
+        </div>
+    </div>
+
+    <div class="card block">
+        <h3>📊 Perguntas Mais Frequentes</h3>
+        <table id="ranking">
+            <tr><th>Pergunta</th><th>Quantidade</th></tr>
+        </table>
+    </div>
+
+    <div class="card block">
+        <h3>📝 Últimos Logs</h3>
+        <table id="logs">
+            <tr><th>Usuário</th><th>Mensagem</th><th>Data</th></tr>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    let lastData = null;
+    async function atualizarPainel() {
+        try {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 4000);
+            const req = await fetch("/status", { signal: controller.signal, cache: "no-store" });
+            clearTimeout(timeout);
+            const data = await req.json();
+            lastData = data;
+
+            document.getElementById("status").innerHTML =
+                data.online ? "<span class='status-online'>🟢 Online</span>" :
+                              "<span class='status-offline'>🔴 Offline</span>";
+
+            document.getElementById("ultimaMsg").textContent = data.ultimaMsg || "Nenhuma";
+            document.getElementById("usuarios").textContent = data.totalUsuarios;
+            document.getElementById("atendimentos").textContent = data.totalAtendimentos;
+
+            const rankingTabela = document.getElementById("ranking");
+            rankingTabela.innerHTML = "<tr><th>Pergunta</th><th>Quantidade</th></tr>";
+            const ranking = Array.isArray(data.ranking) ? data.ranking : [];
+            if (ranking.length === 0) {
+                rankingTabela.innerHTML += "<tr><td colspan='2'>Sem dados</td></tr>";
+            } else {
+                ranking.forEach(item => {
+                    rankingTabela.innerHTML += `
                         <tr>
-                            <th>Perguntas</th>
-                            <th>Quantidade</th>
+                            <td>${String(item.pergunta ?? "")}</td>
+                            <td>${String(item.quantidade ?? 0)}</td>
                         </tr>
-                    </thead>
-                    <tbody id="tabelaPerguntas"></tbody>
-                </table>
-            </div>
-            <script>
-                async function atualizarPainel() {
-                    try {
-                        const res = await fetch("/status");
-                        const data = await res.json();
-                        document.getElementById("status").textContent = data.online ? "Online" : "Offline";
-                        document.getElementById("status").className = data.online ? "status-online" : "status-offline";
-                        document.getElementById("ultimaMsg").textContent = data.ultimaMsg || "Nenhuma";
-                        document.getElementById("atualizado").textContent = new Date().toLocaleTimeString();
-                        const tabela = document.getElementById("tabelaPerguntas");
-                        tabela.innerHTML = "";
-                        const lista = Array.isArray(data.ranking) ? data.ranking : [];
-                        if (lista.length === 0) {
-                            tabela.innerHTML = `<tr><td colspan="2">Sem dados</td></tr>`;
-                        } else {
-                            lista.forEach(item => {
-                                tabela.innerHTML += `
-                                    <tr>
-                                        <td>${item.pergunta}</td>
-                                        <td>${item.quantidade}</td>
-                                    </tr>
-                                `;
-                            });
-                        }
-                    } catch (error) {
-                        console.error("Erro ao atualizar tabela:", error);
-                        document.getElementById("status").textContent = "Erro";
-                        document.getElementById("status").className = "status-offline";
-                        document.getElementById("ultimaMsg").textContent = "–";
-                        const tabela = document.getElementById("tabelaPerguntas");
-                        tabela.innerHTML = `<tr><td colspan="2">Falha ao carregar</td></tr>`;
-                    }
-                }
-                atualizarPainel();
-                setInterval(atualizarPainel, 5000);
-            </script>
+                    `;
+                });
+            }
 
-        </body>
-        </html>
+            const logsTabela = document.getElementById("logs");
+            logsTabela.innerHTML = "<tr><th>Usuário</th><th>Mensagem</th><th>Data</th></tr>";
+            const logs = Array.isArray(data.logs) ? data.logs : [];
+            if (logs.length === 0) {
+                logsTabela.innerHTML += "<tr><td colspan='3'>Sem logs</td></tr>";
+            } else {
+                logs.forEach(item => {
+                    logsTabela.innerHTML += `
+                        <tr>
+                            <td>${String(item.numero ?? "–")}</td>
+                            <td>${String(item.mensagem ?? "")}</td>
+                            <td>${String(item.created_at ?? "")}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+        } catch (e) {
+            if (lastData) return;
+            const statusEl = document.getElementById("status");
+            statusEl.innerHTML = "<span class='status-offline'>🟡 Indisponível</span>";
+            document.getElementById("ultimaMsg").textContent = "–";
+            document.getElementById("usuarios").textContent = "0";
+            document.getElementById("atendimentos").textContent = "0";
+            const rankingTabela = document.getElementById("ranking");
+            rankingTabela.innerHTML = "<tr><th>Pergunta</th><th>Quantidade</th></tr><tr><td colspan='2'>Sem dados</td></tr>";
+            const logsTabela = document.getElementById("logs");
+            logsTabela.innerHTML = "<tr><th>Usuário</th><th>Mensagem</th><th>Data</th></tr><tr><td colspan='3'>Sem logs</td></tr>";
+        }
+    }
+
+    atualizarPainel();
+    setInterval(atualizarPainel, 3000);
+</script>
+
+</body>
+</html>
+
         
 

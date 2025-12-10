@@ -61,13 +61,13 @@ Crie as tabelas básicas (ajuste tipos conforme sua necessidade):
 
 ```sql
 CREATE TABLE IF NOT EXISTS usuarios (
-  usuario_id VARCHAR(255) PRIMARY KEY,
+  numero VARCHAR(255) PRIMARY KEY,
   total_atendimentos INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS perguntas (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id VARCHAR(255),
+  numero VARCHAR(255),
   pergunta VARCHAR(255),
   vezes INT NOT NULL DEFAULT 1,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS perguntas (
 
 CREATE TABLE IF NOT EXISTS logs (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id VARCHAR(255),
+  numero VARCHAR(255),
   mensagem TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

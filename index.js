@@ -54,6 +54,7 @@ async function startBot() {
         if (!msg.message) return;
 
         const sender = msg.key.remoteJid;
+        const numero = sender.endsWith("@s.whatsapp.net") ? sender.replace("@s.whatsapp.net", "") : sender;
         let texto =
             msg.message.conversation ||
             msg.message.extendedTextMessage?.text ||
@@ -68,8 +69,8 @@ async function startBot() {
         if (texto.toLowerCase() === "!iniciar"){
             try {
                 await pool.query(
-                    "INSERT INTO usuarios (usuario_id, total_atendimentos) VALUES (?, 1) ON DUPLICATE KEY UPDATE total_atendimentos = total_atendimentos + 1",
-                    [sender]
+                    "INSERT INTO usuarios (numero, total_atendimentos) VALUES (?, 1) ON DUPLICATE KEY UPDATE total_atendimentos = total_atendimentos + 1",
+                    [numero]
                 );
             } catch {}
             const menu = `
@@ -141,12 +142,12 @@ Av. Cristiano Machado 11.157
             }
             try {
                 await pool.query(
-                    "INSERT INTO perguntas (usuario_id, pergunta, vezes) VALUES (?, ?, 1)",
-                    [sender, texto]
+                    "INSERT INTO perguntas (numero, pergunta, vezes) VALUES (?, ?, 1)",
+                    [numero, texto]
                 );
                 await pool.query(
-                    "INSERT INTO logs (usuario_id, mensagem) VALUES (?, ?)",
-                    [sender, resposta]
+                    "INSERT INTO logs (numero, mensagem) VALUES (?, ?)",
+                    [numero, resposta]
                 );
             } catch {}
 
@@ -187,16 +188,40 @@ function startServer() {
             return;
         }
         if (req.method === "GET" && req.url === "/status") {
+            let totalUsuarios = 0;
+            let totalAtendimentos = 0;
+            let ranking = [];
+            let logs = [];
+            const errs = [];
             try {
-                const [rows] = await pool.query(
-                    "SELECT pergunta, SUM(vezes) AS quantidade FROM perguntas GROUP BY pergunta ORDER BY quantidade DESC LIMIT 10"
-                );
-                const body = JSON.stringify({ online: isOnline, ultimaMsg, ranking: rows });
-                res.writeHead(200, { "Content-Type": "application/json" });
-                res.end(body);
+                try {
+                    const [[rowUsers]] = await pool.query("SELECT COUNT(*) AS totalUsuarios FROM usuarios");
+                    totalUsuarios = rowUsers?.totalUsuarios ?? 0;
+                } catch { errs.push("usuarios"); }
+                try {
+                    const [[rowAtt]] = await pool.query("SELECT COALESCE(SUM(total_atendimentos),0) AS totalAtendimentos FROM usuarios");
+                    totalAtendimentos = rowAtt?.totalAtendimentos ?? 0;
+                } catch { errs.push("atendimentos"); }
+                try {
+                    const [rnk] = await pool.query("SELECT pergunta, SUM(vezes) AS quantidade FROM perguntas GROUP BY pergunta ORDER BY quantidade DESC LIMIT 10");
+                    ranking = Array.isArray(rnk) ? rnk : [];
+                } catch { errs.push("ranking"); }
+                try {
+                    const [lg] = await pool.query("SELECT numero, mensagem, created_at FROM logs ORDER BY created_at DESC LIMIT 10");
+                    logs = Array.isArray(lg) ? lg : [];
+                } catch {
+                    try {
+                        const [lg2] = await pool.query("SELECT usuario_id AS numero, mensagem, created_at FROM logs ORDER BY created_at DESC LIMIT 10");
+                        logs = Array.isArray(lg2) ? lg2 : [];
+                    } catch { errs.push("logs"); }
+                }
+                const payload = { ok: errs.length === 0, error: errs.length ? errs.join(",") : undefined, online: isOnline, ultimaMsg, totalUsuarios, totalAtendimentos, ranking, logs };
+                res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+                res.end(JSON.stringify(payload));
             } catch (e) {
-                res.writeHead(500, { "Content-Type": "application/json" });
-                res.end(JSON.stringify({ error: "falha" }));
+                const payload = { ok: false, error: "unknown", online: isOnline, ultimaMsg, totalUsuarios, totalAtendimentos, ranking, logs };
+                res.writeHead(200, { "Content-Type": "application/json", "Cache-Control": "no-store" });
+                res.end(JSON.stringify(payload));
             }
             return;
         }

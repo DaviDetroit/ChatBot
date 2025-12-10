@@ -1,0 +1,76 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+
+}
+
+header{
+    background: #0b8457;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 26px;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.container{
+    max-width: 1100px;
+    margin: 25px auto;
+    padding: 10px;
+}
+.cards{
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(2600px,1fr));
+    gap: 20px;
+}
+.card{
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+}
+.card h3{
+    margin-top: 0;
+    color: #0b8457;
+}
+.block{
+    margin-top: 30px;
+}
+.status-online{
+    color: #00c13a;
+    font-weight: bold;
+}
+.status-offline {
+    color: #d11a2a;
+    font-weight: bold;
+}
+table{
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+table th, table td{
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+table th {
+    background: #0b8457;
+    color: white;
+}
+.qr-btn{
+    background: #0b8457;
+    color: white;
+    padding:12px 20px;
+    text-decoration: none;
+    display: inline-block;
+    border-radius: 10px;
+    margin-top: 10px;
+    text-align: center;
+}
+.qr-btn:hover {
+    background: #067244;
+}
