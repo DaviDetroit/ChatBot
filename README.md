@@ -152,9 +152,9 @@ MIT
 ## Capturas de Tela
 
 ### Funcionamento do Bot
-![Funcionamento 1](docs/funcionamento 1.png)
-![Funcionamento 2](docs/funcionamento 2.png)
-![Funcionamento 3](docs/funcionamento 3.png)
+![Funcionamento 1](docs/funcionamento1.png)
+![Funcionamento 2](docs/funcionamento2.png)
+![Funcionamento 3](docs/funcionamento3.png)
 
 ### Dados / Painel
 ![Dados](docs/dados.png)
