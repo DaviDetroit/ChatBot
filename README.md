@@ -116,7 +116,6 @@ node index.js
 .
 ├─ index.js        # Bot WhatsApp + servidor HTTP
 ├─ db.js           # Pool MySQL e validação de env
-├─ public.html     # Painel web
 ├─ .env            # Configurações do MySQL/porta
 └─ README.md       # Este arquivo
 ```
@@ -132,24 +131,15 @@ node index.js
 - Persistência:
   - As interações são salvas em `perguntas` e `logs`. Usuários têm contador em `usuarios`.
 
-## Troubleshooting
 
-- QR no terminal difícil de ler:
-  - Use `http://localhost:3000/qr` para ver a imagem do QR.
-- Bot fica Offline:
-  - Verifique a internet, cookies de sessão em `./auth` e se não houve logout.
-- Erros de MySQL:
-  - Confirme variáveis do `.env` e se as tabelas existem.
 
-## Observações Legais
 
-- Automação de WhatsApp deve seguir os termos do WhatsApp. Use somente para fins permitidos pelo serviço e respeite privacidade dos usuários.
 
 ## Licença
 
 MIT
 
-## Capturas de Tela
+
 
 ### Funcionamento do Bot
 ![Funcionamento 1](docs/funcionamento1.png)
